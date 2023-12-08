@@ -1,0 +1,57 @@
+import functools
+from typing import Callable
+from datetime import datetime
+import time
+
+def log_methods(date_format: str) -> Callable:
+    def decorator(method: Callable) -> Callable:
+        @functools.wraps(method)
+        def wrapped_method(*args, **kwargs):
+            launch_time = datetime.now().strftime(date_format)
+            print(f"Запускается '{method.__name__}'. Дата и время запуска: {launch_time}")
+            start_time = time.time()
+            result = method(*args, **kwargs)
+            run_time = round(time.time() - start_time, 3)
+            print(f"Завершение {method.__name__}, время работы = {run_time}")
+            return result
+
+        return wrapped_method
+
+    def decorate(cls):
+        for method_name in dir(cls):
+            if not method_name.startswith("__"):
+                cur_attr = getattr(cls, method_name)
+                if callable(cur_attr):
+                    decorated_method = decorator(cur_attr)
+                    setattr(cls, method_name, decorated_method)
+        return cls
+
+    return decorate
+
+@log_methods("%b %d %Y — %H:%M:%S")
+class A:
+    def test_sum_1(self) -> int:
+        print('test sum 1')
+        number = 100
+        result = 0
+        for _ in range(number + 1):
+            result += sum([i_num ** 2 for i_num in range(10000)])
+        return result
+
+@log_methods("%b %d %Y — %H:%M:%S")
+class B(A):
+    def test_sum_1(self):
+        super().test_sum_1()
+        print("Наследник test sum 1")
+
+    def test_sum_2(self):
+        print("test sum 2")
+        number = 200
+        result = 0
+        for _ in range(number + 1):
+            result += sum([i_num ** 2 for i_num in range(10000)])
+        return result
+
+test = B()
+test.test_sum_1()
+test.test_sum_2()

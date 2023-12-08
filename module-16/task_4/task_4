@@ -1,0 +1,21 @@
+from typing import Callable
+
+def decorator_with_args_for_any_decorator(decorator_func: Callable) -> Callable:
+    def decorated_decorator(*args, **kwargs) -> Callable:
+        def decorator_wrapper(func: Callable) -> Callable:
+            print(f"Переданные арги и кварги в декоратор: {args} {kwargs}")
+            return decorator_func(func, *args, **kwargs)
+        return decorator_wrapper
+    return decorated_decorator
+
+@decorator_with_args_for_any_decorator
+def decorated_decorator(func: Callable, *args, **kwargs) -> Callable:
+    def wrapper(*wrapper_args, **wrapper_kwargs):
+        return func(*wrapper_args, **wrapper_kwargs)
+    return wrapper
+
+@decorated_decorator(100, 'рублей', 200, 'друзей')
+def decorated_function(text: str, num: int) -> None:
+    print("Привет,", text, num)
+
+decorated_function("Юзер", 101)
